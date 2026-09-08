@@ -99,9 +99,60 @@ bash ./bootstrap.sh
 
 The bootstrap scripts require only Git plus PowerShell or bash.
 
+
+## Update all repositories
+
+After bootstrap, the meta repository keeps exact Git submodule commits pinned.
+To intentionally move all tracked repositories to the latest commit on their
+remote default branch, run:
+
+Windows:
+
+```powershell
+.\update-repos.ps1
+```
+
+Linux/macOS:
+
+```bash
+bash ./update-repos.sh
+```
+
+The update script:
+
+- initializes missing submodules first;
+- refuses to update a repository that has local changes;
+- fetches and prunes `origin`;
+- follows each repository's `origin/HEAD` default branch instead of assuming
+  that every repository uses `main`;
+- updates with `pull --ff-only`;
+- prints old and new commit SHAs;
+- leaves the changed submodule pointers uncommitted in `meta.scad-projects`.
+
+This keeps the actions separate:
+
+```text
+bootstrap
+    restore the versions pinned by meta.scad-projects
+
+update-repos
+    intentionally advance the tracked repositories
+
+git commit
+    accept the new ecosystem snapshot
+```
+
+A typical update therefore ends with:
+
+```powershell
+git status
+git add repos
+git commit -m "Update SCAD ecosystem repositories"
+```
+
 ## Current status
 
-This first version is intentionally small. It establishes the architecture,
+This early version is intentionally small. It establishes the architecture,
 repository map, design documentation and submodule/bootstrap model.
 
 Cross-repository release orchestration and automated compatibility checks can be

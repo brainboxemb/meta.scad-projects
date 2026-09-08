@@ -104,3 +104,23 @@ Integration/architecture:
 3. Update `lib.scad.clamps` to the generated design-documentation model.
 4. Add integration checks only after the source-of-truth documentation is
    stable enough to define what should be checked automatically.
+
+
+## Updating tracked repositories
+
+Keep `bootstrap` and repository advancement as separate operations.
+
+`bootstrap.ps1` / `bootstrap.sh`:
+- restores/initializes the Git submodules pinned by the meta repository.
+
+`update-repos.ps1` / `update-repos.sh`:
+- requires clean submodule working trees;
+- fetches each origin;
+- detects the remote default branch through `origin/HEAD`;
+- updates using fast-forward only;
+- leaves changed gitlinks for human review;
+- never commits automatically.
+
+Do not make update scripts silently change branches through reset/force
+operations and do not auto-commit the resulting meta-repository changes.
+

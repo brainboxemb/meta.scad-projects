@@ -31,3 +31,10 @@ jobs:
           test -s .gitmodules
 
           git config -f .gitmodules --get-regexp '^submodule\..*\.path$'
+
+
+      - name: Check shell script syntax
+        shell: bash
+        run: |
+          bash -n bootstrap.sh
+          bash -n update-repos.sh
