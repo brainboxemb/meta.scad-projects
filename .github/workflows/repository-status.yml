@@ -20,7 +20,7 @@ jobs:
       - name: Checkout ecosystem repositories
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: true
           fetch-depth: 0
 
       - name: Generate repository status

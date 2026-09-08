@@ -204,6 +204,36 @@ bash ./bootstrap.sh
 The bootstrap scripts require only Git plus PowerShell or bash.
 
 
+## Meta checkout depth
+
+The normal meta workflows intentionally initialize only the first-level
+repositories under `repos/`.
+
+```yaml
+with:
+  submodules: true
+```
+
+They do **not** use recursive submodule checkout.
+
+This is intentional because `meta.scad-projects` observes and compares the
+tracked repositories; it does not need to materialize every consumer's nested
+dependency tree. For example:
+
+```text
+meta.scad-projects
+└── repos/template.scad-project
+    ├── tools/tool.scad-project
+    └── dsg/openscad/ext/lib.scad.clamps
+        └── tools/tool.scad-project
+```
+
+Recursively checking out that full tree makes an observational status workflow
+depend on every nested gitlink being remotely available.
+
+A future dedicated integration job may use recursive checkout when the purpose
+is specifically to validate complete consumer dependency trees.
+
 ## Automated ecosystem status
 
 `.github/workflows/repository-status.yml` generates a current cross-repository

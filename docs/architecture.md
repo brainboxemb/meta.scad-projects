@@ -199,6 +199,26 @@ flowchart LR
 The meta repository observes and integrates these repositories but should not
 become a required runtime dependency of them.
 
+## Meta checkout boundary
+
+`meta.scad-projects` tracks ecosystem repositories as first-level submodules,
+but its normal validation/status workflows should not recursively initialize
+nested consumer dependencies.
+
+```text
+meta
+    checkout first-level repos/*
+
+consumer build/integration
+    may checkout nested dependencies recursively
+```
+
+This keeps the meta repository an observer/integration layer rather than making
+its repository-status job equivalent to building every tracked consumer.
+
+Recursive checkout is still appropriate for a future dedicated integration
+test whose purpose is to validate complete dependency trees.
+
 ## Architecture rule
 
 The meta repository is a coordination and integration layer, not a place to move

@@ -226,4 +226,16 @@ Generated branch convention:
 - separate `verification` only where distinct functional/API evidence warrants
   it, currently `lib.scad.clamps`.
 
+## Meta submodule checkout rule
+
+Normal `meta.scad-projects` workflows must initialize only first-level
+submodules (`submodules: true` in `actions/checkout`), not recursively.
+
+Reason: meta observes tracked repositories and does not need each consumer's
+nested tooling/library tree merely to report repository state. Recursive
+checkout creates unnecessary coupling to nested gitlinks and can fail on an
+unpublished nested commit.
+
+Use recursive checkout only in a dedicated integration workflow whose explicit
+purpose is validating complete consumer dependency trees.
 
