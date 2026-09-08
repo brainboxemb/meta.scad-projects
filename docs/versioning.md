@@ -37,3 +37,14 @@ compatibility table such as:
 
 This table should eventually be generated from integration tests rather than
 manually guessed.
+
+
+## Automated visibility
+
+`meta.scad-projects` generates a daily repository-status report. It compares
+the gitlink pinned in the meta repository with the current default branch and
+shows the newest Git tag.
+
+This report is observational: it does not automatically advance or commit
+submodule pointers. Use `update-repos.ps1` / `update-repos.sh` when an update is
+intentionally accepted.

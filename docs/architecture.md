@@ -12,33 +12,59 @@ apply across repository boundaries.
 ## Ecosystem overview
 
 ```mermaid
-flowchart TB
-    subgraph Runtime
-        TOOLCHAIN[docker.scad-toolchain]
+flowchart TD
+
+    subgraph RUNTIME["Runtime / Build environment"]
+        direction TB
+        TOOLCHAIN["docker.scad-toolchain"]
     end
 
-    subgraph Validation
-        TOOLCHAIN_TEST[docker.scad-toolchain.test]
+    subgraph WORKFLOW["Project workflow"]
+        direction TB
+        TOOL["tool.scad-project"]
     end
 
-    subgraph Workflow
-        PROJECT_TOOL[tool.scad-project]
+    subgraph DESIGN["Design / Consumers"]
+        direction TB
+        TEMPLATE["template.scad-project"]
+        CLAMPS["lib.scad.clamps"]
     end
 
-    subgraph Reference
-        TEMPLATE[template.scad-project]
+    subgraph VERIFY["Verification"]
+        direction TB
+        TOOLCHAIN_TEST["docker.scad-toolchain.test"]
     end
 
-    subgraph Libraries
-        CLAMPS[lib.scad.clamps]
-    end
+    TEMPLATE -->|"build tooling"| TOOL
+    TEMPLATE -->|"runtime"| TOOLCHAIN
+    TEMPLATE -->|"design / reusable CAD"| CLAMPS
 
-    TOOLCHAIN_TEST --> TOOLCHAIN
-    PROJECT_TOOL --> TOOLCHAIN
-    TEMPLATE --> PROJECT_TOOL
-    TEMPLATE --> TOOLCHAIN
-    TEMPLATE --> CLAMPS
+    TOOL -->|"runs on"| TOOLCHAIN
+
+    TOOLCHAIN_TEST -.->|"verifies"| TOOLCHAIN
 ```
+
+### Relationship semantics
+
+The direction of a solid arrow means **"A uses B"**.
+
+Examples:
+
+- `template.scad-project -> tool.scad-project`: the template uses the reusable
+  project workflow for build/project tooling.
+- `template.scad-project -> docker.scad-toolchain`: the template build runs in
+  the SCAD runtime/build environment.
+- `template.scad-project -> lib.scad.clamps`: the template consumes the
+  reusable clamp library as design/CAD input.
+- `tool.scad-project -> docker.scad-toolchain`: the project workflow runs on
+  capabilities provided by the runtime image.
+
+A dashed arrow is a verification relationship:
+
+- `docker.scad-toolchain.test -.-> docker.scad-toolchain`: the test repository
+  verifies the runtime/toolchain rather than consuming it as an application
+  dependency.
+
 
 ## Layer responsibilities
 

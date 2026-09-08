@@ -1,0 +1,34 @@
+{
+  "repositories": [
+    {
+      "name": "docker.scad-toolchain",
+      "path": "repos/docker.scad-toolchain",
+      "url": "https://github.com/brainboxemb/docker.scad-toolchain",
+      "role": "Runtime / build environment"
+    },
+    {
+      "name": "docker.scad-toolchain.test",
+      "path": "repos/docker.scad-toolchain.test",
+      "url": "https://github.com/brainboxemb/docker.scad-toolchain.test",
+      "role": "Verification of the runtime/toolchain"
+    },
+    {
+      "name": "tool.scad-project",
+      "path": "repos/tool.scad-project",
+      "url": "https://github.com/brainboxemb/tool.scad-project",
+      "role": "Reusable project and build tooling"
+    },
+    {
+      "name": "template.scad-project",
+      "path": "repos/template.scad-project",
+      "url": "https://github.com/brainboxemb/template.scad-project",
+      "role": "Reference consumer project"
+    },
+    {
+      "name": "lib.scad.clamps",
+      "path": "repos/lib.scad.clamps",
+      "url": "https://github.com/brainboxemb/lib.scad.clamps",
+      "role": "Reusable CAD library"
+    }
+  ]
+}

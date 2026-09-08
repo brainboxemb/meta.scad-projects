@@ -1,0 +1,40 @@
+name: Repository status
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout ecosystem repositories
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Generate repository status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/repository-status.py
+
+      - name: Upload generated status
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-status
+          path: bld
+
+      - name: Publish build branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/publish-build.sh

@@ -38,3 +38,10 @@ jobs:
         run: |
           bash -n bootstrap.sh
           bash -n update-repos.sh
+
+
+      - name: Check repository status script syntax
+        run: python3 -m py_compile scripts/repository-status.py
+
+      - name: Check publish script syntax
+        run: bash -n scripts/publish-build.sh

@@ -59,20 +59,20 @@ and architecture repository.
 It should not become a required dependency for normal builds.
 
 ```mermaid
-flowchart TB
-    OPS[meta.scad-projects]
+flowchart TD
+    META["meta.scad-projects"]
 
-    TOOLCHAIN[docker.scad-toolchain]
-    TEST[docker.scad-toolchain.test]
-    TOOL[tool.scad-project]
-    TEMPLATE[template.scad-project]
-    CLAMPS[lib.scad.clamps]
+    TOOLCHAIN["docker.scad-toolchain"]
+    TEST["docker.scad-toolchain.test"]
+    TOOL["tool.scad-project"]
+    TEMPLATE["template.scad-project"]
+    CLAMPS["lib.scad.clamps"]
 
-    OPS -. architecture .-> TOOLCHAIN
-    OPS -. architecture .-> TEST
-    OPS -. architecture .-> TOOL
-    OPS -. architecture .-> TEMPLATE
-    OPS -. architecture .-> CLAMPS
+    META -.->|"architecture"| TOOLCHAIN
+    META -.->|"architecture"| TEST
+    META -.->|"architecture"| TOOL
+    META -.->|"architecture"| TEMPLATE
+    META -.->|"architecture"| CLAMPS
 ```
 
 ## Design principles
