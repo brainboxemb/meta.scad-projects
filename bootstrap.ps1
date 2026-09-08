@@ -42,7 +42,7 @@ foreach ($submodule in Get-Submodules) {
     $tracked = git ls-files --stage -- $path
     if ($tracked -match '^160000 ') {
         Write-Host "Initializing pinned submodule: $path"
-        git submodule update --init --recursive -- $path
+        git submodule update --init -- $path
         continue
     }
 
@@ -50,7 +50,7 @@ foreach ($submodule in Get-Submodules) {
     git submodule add --force $submodule.Url $path
 }
 
-git submodule sync --recursive
-git submodule update --init --recursive
+git submodule sync
+git submodule update --init
 
 Write-Host "SCAD ecosystem repositories are initialized."

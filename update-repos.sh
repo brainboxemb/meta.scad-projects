@@ -6,8 +6,8 @@ if [[ ! -f .gitmodules ]]; then
     exit 1
 fi
 
-git submodule sync --recursive
-git submodule update --init --recursive
+git submodule sync
+git submodule update --init
 
 declare -a summary=()
 

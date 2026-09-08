@@ -174,13 +174,13 @@ tooling:
     type: git-submodule
     url: https://github.com/brainboxemb/tool.scad-project.git
     path: tools/tool.scad-project
-    ref: v0.4.3
+    ref: v0.4.4
 ```
 
 External libraries use the same `ref` model.
 
 Supported policies:
-- exact tag such as `v0.4.3`;
+- exact tag such as `v0.4.4`;
 - `latest` = highest stable semantic-version tag;
 - explicit branch such as `main`.
 
@@ -190,9 +190,9 @@ A development ZIP name is not an official release. Dependency `latest` must
 only consider actual Git tags.
 
 Current reference policies:
-- `template.scad-project` -> `tool.scad-project`: `v0.4.3`;
+- `template.scad-project` -> `tool.scad-project`: `v0.4.4`;
 - `template.scad-project` -> `lib.scad.clamps`: `main`;
-- `lib.scad.clamps` -> `tool.scad-project`: `v0.4.3`.
+- `lib.scad.clamps` -> `tool.scad-project`: `v0.4.4`.
 
 The template follows `lib.scad.clamps/main` because the library does not yet
 have an established stable release-tag series.
@@ -238,4 +238,16 @@ unpublished nested commit.
 
 Use recursive checkout only in a dedicated integration workflow whose explicit
 purpose is validating complete consumer dependency trees.
+
+## Ecosystem direct-only dependency rule
+
+Across the ecosystem, normal checkout/update operations initialize only direct
+submodules belonging to the current repository.
+
+Nested dependency submodules are not traversed automatically. A dependency is
+responsible for its own direct submodules only when it is the standalone
+project.
+
+Use recursive checkout only for a dedicated full dependency-tree integration
+test.
 

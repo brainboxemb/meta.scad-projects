@@ -169,7 +169,7 @@ uncommitted for review.
 
 The supported ref meanings are:
 
-- exact semantic-version tag such as `v0.4.3`;
+- exact semantic-version tag such as `v0.4.4`;
 - `latest`, meaning the highest stable semantic-version tag;
 - an explicit remote branch such as `main`.
 
@@ -198,6 +198,25 @@ flowchart LR
 
 The meta repository observes and integrates these repositories but should not
 become a required runtime dependency of them.
+
+## Direct dependency ownership boundary
+
+A repository owns the initialization of its direct dependencies only.
+
+```text
+template standalone
+    initializes template -> tool
+    initializes template -> lib
+
+lib consumed by template
+    does not initialize lib -> tool
+
+lib standalone
+    initializes lib -> tool
+```
+
+This prevents development tooling from every nested dependency being pulled
+into ordinary consumers while preserving standalone reproducibility.
 
 ## Meta checkout boundary
 

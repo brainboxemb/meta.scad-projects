@@ -83,7 +83,7 @@ tooling:
     type: git-submodule
     url: https://github.com/brainboxemb/tool.scad-project.git
     path: tools/tool.scad-project
-    ref: v0.4.3
+    ref: v0.4.4
 
 externals:
   - name: lib.scad.clamps
@@ -203,6 +203,25 @@ bash ./bootstrap.sh
 
 The bootstrap scripts require only Git plus PowerShell or bash.
 
+
+## Direct-submodule rule
+
+The ecosystem now uses a consistent direct-only checkout rule.
+
+```text
+normal project/repository operation
+    initialize only direct submodules owned by that repository
+
+dependency consumed inside another repository
+    do not automatically initialize that dependency's own submodules
+
+full recursive checkout
+    only in an explicit integration test
+```
+
+For `meta.scad-projects`, this means normal bootstrap, validation and status
+workflows materialize only `repos/*`. Nested tooling/libraries inside those
+repositories are intentionally left untouched.
 
 ## Meta checkout depth
 

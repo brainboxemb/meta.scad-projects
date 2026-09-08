@@ -37,8 +37,8 @@ if (-not (Test-Path ".gitmodules")) {
     throw ".gitmodules not found."
 }
 
-git submodule sync --recursive
-git submodule update --init --recursive
+git submodule sync
+git submodule update --init
 
 $updates = @()
 

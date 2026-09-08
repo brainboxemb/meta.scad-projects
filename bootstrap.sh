@@ -26,14 +26,14 @@ while read -r key path; do
 
     if git ls-files --stage -- "$path" | grep -q '^160000 '; then
         echo "Initializing pinned submodule: $path"
-        git submodule update --init --recursive -- "$path"
+        git submodule update --init -- "$path"
     else
         echo "Registering submodule: $path"
         git submodule add --force "$url" "$path"
     fi
 done
 
-git submodule sync --recursive
-git submodule update --init --recursive
+git submodule sync
+git submodule update --init
 
 echo "SCAD ecosystem repositories are initialized."
