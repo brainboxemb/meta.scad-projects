@@ -4,7 +4,7 @@
 The report combines:
 - the commit pinned by the meta repository;
 - the latest commit on each repository's remote default branch;
-- the most recently created Git tag;
+- the latest stable semantic-version Git tag;
 - the latest completed GitHub Actions run.
 
 The script uses Git for repository/tag data and the GitHub REST API only for
@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -121,16 +122,25 @@ def prepare_submodule(path: Path) -> tuple[str, str, str]:
         cwd=path,
     )
 
-    # Creator date works for annotated and lightweight tags and is more useful
-    # here than lexical/semantic sorting because tag formats differ by repo.
-    latest_tag = run_git(
+    # `latest` in the consumer dependency model means the highest stable
+    # semantic-version tag, not the most recently created arbitrary tag.
+    tags = run_git(
         "tag",
-        "--sort=-creatordate",
-        "--format=%(refname:short)",
+        "--list",
         cwd=path,
         check=False,
     ).splitlines()
-    tag = latest_tag[0] if latest_tag else "-"
+
+    semantic_tags: list[tuple[tuple[int, int, int], str]] = []
+    for candidate in tags:
+        match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", candidate.strip())
+        if match:
+            semantic_tags.append(
+                (tuple(int(value) for value in match.groups()), candidate.strip())
+            )
+
+    semantic_tags.sort()
+    tag = semantic_tags[-1][1] if semantic_tags else "-"
 
     commit_date = run_git(
         "show",

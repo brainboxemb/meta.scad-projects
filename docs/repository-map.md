@@ -7,8 +7,8 @@
 | `docker.scad-toolchain` | CAD/runtime image | external packages | image tags |
 | `docker.scad-toolchain.test` | runtime consumer tests | `docker.scad-toolchain` | optional reports |
 | `tool.scad-project` | reusable project workflow | `docker.scad-toolchain` | `build` |
-| `template.scad-project` | reference consumer | toolchain, project tool, libraries | `build` |
-| `lib.scad.clamps` | reusable CAD library | toolchain | `build` |
+| `template.scad-project` | reference consumer | toolchain, project tool, libraries via `project.yml` refs | `build` |
+| `lib.scad.clamps` | reusable CAD library | toolchain + `tool.scad-project` workflow | `build` + `verification` |
 | `meta.scad-projects` | ecosystem architecture/integration | all above as submodules | `build` |
 
 ## Integration view
@@ -51,6 +51,26 @@ flowchart TD
 The dotted relationships are integration/coordination relationships. They do
 not mean that the individual repositories depend on `meta.scad-projects`.
 
+
+## Current dependency conventions
+
+The repository map separates architectural relationships from a consumer's
+exact dependency policy.
+
+Current convention:
+
+| Consumer | Dependency | Policy |
+| --- | --- | --- |
+| `template.scad-project` | `tool.scad-project` | exact ref `v0.4.3` |
+| `template.scad-project` | `lib.scad.clamps` | branch ref `main` |
+| `lib.scad.clamps` | `tool.scad-project` | exact ref `v0.4.3` |
+
+The `lib.scad.clamps` branch policy in the template is intentional for current
+integration testing. Once the library has an established stable semantic
+release series, the template may demonstrate `ref: latest` instead.
+
+The concrete commits remain locked by the consumer repositories' Git submodule
+gitlinks.
 
 ## Live/generated status
 

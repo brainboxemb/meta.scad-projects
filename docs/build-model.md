@@ -55,6 +55,32 @@ This means a consumer can browse generated documentation for its own
 components and for compatible external libraries without generated binaries
 being committed to the source branch.
 
+## Build and verification branches
+
+`build` is the common mutable generated-output branch.
+
+A repository only needs a separate `verification` branch when its verification
+evidence has a distinct lifecycle from normal generated build output.
+
+Current examples:
+
+```text
+template.scad-project
+    main
+    build
+
+lib.scad.clamps
+    main
+    build
+    verification
+```
+
+`lib.scad.clamps` uses `verification` for functional/API consumer evidence.
+The template does not add a separate verification branch merely for symmetry.
+
+Common GitHub Actions build logic belongs in reusable workflows under
+`tool.scad-project`. Consumer repositories keep thin workflow callers.
+
 ## Meta repository
 
 The same principle applies here.

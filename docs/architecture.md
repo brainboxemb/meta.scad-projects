@@ -98,10 +98,12 @@ Reusable project workflow and policy.
 Examples:
 
 - configuration linting
-- external dependency management
+- versioned Git-submodule dependency policy
+- repository synchronization/update conventions
 - OpenSCAD docs linting
 - design documentation generation
 - build orchestration
+- reusable GitHub Actions workflows
 - verification
 - generated build publication
 
@@ -114,10 +116,12 @@ Reference consumer and executable example of the recommended project layout.
 It demonstrates:
 
 - `dsg`, `bld`, `vrf`
-- pinned tooling as a Git submodule
-- reusable external CAD libraries
+- `project.yml` as dependency-policy source
+- `tool.scad-project` as a versioned Git submodule
+- reusable external CAD libraries as versioned/ref-controlled submodules
+- explicit branch testing such as `ref: main`
 - design documentation
-- CI build and verification
+- thin CI callers of reusable tool workflows
 - generated build branch
 
 ### lib.scad.clamps
@@ -127,6 +131,53 @@ Reusable OpenSCAD/PythonSCAD library.
 The library owns its public API and design source. Generated design images and
 reports belong on its generated build branch rather than the normal source
 branch.
+
+## Dependency policy and lock model
+
+Consumer repositories have two related sources of dependency state:
+
+```text
+project.yml
+    desired dependency policy/ref
+
+Git submodule gitlink
+    exact resolved commit
+```
+
+This is intentionally similar to a manifest plus lock:
+
+```mermaid
+flowchart TD
+    PROJECT["project.yml<br/>dependency policy"]
+    UPDATE["update-repo<br/>resolve refs"]
+    GITLINK["Git submodule gitlinks<br/>exact commits"]
+    CHECKOUT["working checkout"]
+    WORKFLOW["thin reusable workflow ref"]
+
+    PROJECT --> UPDATE
+    UPDATE --> GITLINK
+    GITLINK --> CHECKOUT
+    UPDATE --> WORKFLOW
+```
+
+A normal clone/bootstrap restores the gitlinks already committed by the parent
+repository. It must not implicitly advance `latest` or branch refs.
+
+`update-repo` is the explicit advancement operation. It resolves each
+dependency independently and leaves changed gitlinks/workflow callers
+uncommitted for review.
+
+The supported ref meanings are:
+
+- exact semantic-version tag such as `v0.4.3`;
+- `latest`, meaning the highest stable semantic-version tag;
+- an explicit remote branch such as `main`.
+
+`latest` and `main` are deliberately different policies.
+
+The repository-management layer (`bootstrap.*` and `update-repo.*`) is
+Python-free. Python remains appropriate for the wider build/design CLI after
+repository dependencies have been established.
 
 ## Dependency direction
 

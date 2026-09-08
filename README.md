@@ -71,6 +71,77 @@ flowchart TD
 
 See [docs/architecture.md](docs/architecture.md) for the full ecosystem view.
 
+## Project dependency model
+
+Consumer projects now describe their dependency policy in `project.yml`.
+
+Example:
+
+```yaml
+tooling:
+  tool_scad_project:
+    type: git-submodule
+    url: https://github.com/brainboxemb/tool.scad-project.git
+    path: tools/tool.scad-project
+    ref: v0.4.3
+
+externals:
+  - name: lib.scad.clamps
+    type: git-submodule
+    url: https://github.com/brainboxemb/lib.scad.clamps.git
+    path: dsg/openscad/ext/lib.scad.clamps
+    ref: main
+```
+
+The configured `ref` is dependency policy, while the parent repository's Git
+submodule gitlink is the concrete lock.
+
+Supported policy forms are:
+
+```text
+ref: vX.Y.Z
+    exact released tag
+
+ref: latest
+    highest stable semantic-version tag
+
+ref: main
+ref: develop
+    current head of an explicitly named branch
+```
+
+`latest` never silently falls back to `main`.
+
+The current reference projects deliberately demonstrate different behavior:
+
+- `tool.scad-project` is pinned by an exact released ref;
+- `template.scad-project` currently follows `lib.scad.clamps` through
+  `ref: main`, because that library does not yet have an established release
+  tag series;
+- a future consumer can use `ref: latest` once the dependency has stable
+  semantic-version releases.
+
+Repository setup/update commands are intentionally separated:
+
+```text
+bootstrap
+    establish/repair submodule registrations and restore committed gitlinks
+
+repo-sync
+    restore the exact commits already locked by a consumer repository
+
+update-repo
+    intentionally resolve configured refs and advance consumer gitlinks
+```
+
+The root `bootstrap.*` and `update-repo.*` scripts supplied by
+`tool.scad-project` are Python-free and require only Git plus PowerShell/bash.
+The updater leaves changes uncommitted for review.
+
+GitHub Actions reusable workflow refs remain literal YAML values, so
+`update-repo` also aligns thin workflow callers with the resolved
+`tool.scad-project` ref.
+
 ## Source and generated content
 
 The architecture follows the same source/build separation used by the project
@@ -155,7 +226,7 @@ The report includes:
 - commit pinned by this meta repository;
 - remote default branch;
 - latest default-branch commit;
-- newest Git tag by creator date;
+- latest stable semantic-version tag;
 - whether the pinned commit is current;
 - latest completed GitHub Actions result;
 - latest commit date;
@@ -216,11 +287,7 @@ git commit -m "Update SCAD ecosystem repositories"
 
 ## Current status
 
-This early version is intentionally small. It establishes the architecture,
-repository map, design documentation and submodule/bootstrap model.
-
-Cross-repository release orchestration and automated compatibility checks can be
-added later, after the documentation model has proven useful.
+The repository now documents the shared dependency-policy model, reusable workflow architecture, generated-output model and cross-repository status automation. Cross-repository compatibility checks can be added later without turning this meta repository into a runtime dependency.
 
 The model, code and documentation are being developed with the assistance of
 ChatGPT.
