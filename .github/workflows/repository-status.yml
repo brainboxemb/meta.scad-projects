@@ -15,26 +15,31 @@ permissions:
 jobs:
   status:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout ecosystem repositories
+        timeout-minutes: 2
         uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
 
       - name: Generate repository status
+        timeout-minutes: 5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 scripts/repository-status.py
 
       - name: Upload generated status
+        timeout-minutes: 2
         uses: actions/upload-artifact@v4
         with:
           name: repository-status
           path: bld
 
       - name: Publish build branch
+        timeout-minutes: 2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash scripts/publish-build.sh
