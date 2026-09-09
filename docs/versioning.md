@@ -11,7 +11,7 @@ Current ecosystem examples include:
 
 ```text
 docker.scad-toolchain        independent runtime releases
-tool.scad-project            v0.6.0 workflow, dependency and render orchestration
+tool.scad-project            v0.6.1 workflow, dependency and render orchestration
 template.scad-project        independent consumer history
 lib.scad.clamps              independent library history
 ```
@@ -32,7 +32,7 @@ tooling:
     type: git-submodule
     url: https://github.com/brainboxemb/tool.scad-project.git
     path: tools/tool.scad-project
-    ref: v0.6.0
+    ref: v0.6.1
 
 externals:
   - name: lib.scad.clamps
@@ -62,7 +62,7 @@ This preserves reproducibility even for a floating policy such as `main`.
 ### Exact tag
 
 ```yaml
-ref: v0.6.0
+ref: v0.6.1
 ```
 
 Resolve the exact tag.
@@ -121,9 +121,9 @@ At the time this architecture was introduced:
 
 | Consumer | Dependency | Configured policy |
 | --- | --- | --- |
-| `template.scad-project` | `tool.scad-project` | `v0.6.0` |
+| `template.scad-project` | `tool.scad-project` | `v0.6.1` |
 | `template.scad-project` | `lib.scad.clamps` | `main` |
-| `lib.scad.clamps` | `tool.scad-project` | `v0.6.0` |
+| `lib.scad.clamps` | `tool.scad-project` | `v0.6.1` |
 
 The template follows `lib.scad.clamps/main` because the library does not yet
 have an established stable release-tag series. This should not be represented
