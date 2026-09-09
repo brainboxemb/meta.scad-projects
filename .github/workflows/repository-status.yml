@@ -1,4 +1,4 @@
-name: Repository status
+name: Status
 
 on:
   push:
