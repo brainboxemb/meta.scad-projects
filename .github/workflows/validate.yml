@@ -8,15 +8,18 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout ecosystem repositories
+        timeout-minutes: 2
         uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
 
       - name: Validate repository documentation
+        timeout-minutes: 2
         shell: bash
         run: |
           set -euo pipefail
@@ -34,6 +37,7 @@ jobs:
 
 
       - name: Check shell script syntax
+        timeout-minutes: 2
         shell: bash
         run: |
           bash -n bootstrap.sh
@@ -41,7 +45,9 @@ jobs:
 
 
       - name: Check repository status script syntax
+        timeout-minutes: 2
         run: python3 -m py_compile scripts/repository-status.py
 
       - name: Check publish script syntax
+        timeout-minutes: 2
         run: bash -n scripts/publish-build.sh
