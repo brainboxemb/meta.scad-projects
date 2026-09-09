@@ -1,4 +1,4 @@
-name: Validate meta repository
+name: Validate
 
 on:
   push:
