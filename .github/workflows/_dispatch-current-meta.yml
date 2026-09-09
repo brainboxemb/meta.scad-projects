@@ -1,0 +1,35 @@
+name: One-shot dispatch current meta checks
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove dispatcher and run checks on clean main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git rm .github/workflows/_dispatch-current-meta.yml
+          git commit -m "Remove temporary meta dispatcher"
+          git push origin HEAD:main
+
+          gh workflow run validate.yml --repo "$GITHUB_REPOSITORY" --ref main
+          gh workflow run repository-status.yml --repo "$GITHUB_REPOSITORY" --ref main
