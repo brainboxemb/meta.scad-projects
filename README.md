@@ -83,7 +83,7 @@ tooling:
     type: git-submodule
     url: https://github.com/brainboxemb/tool.scad-project.git
     path: tools/tool.scad-project
-    ref: v0.4.4
+    ref: v0.6.0
 
 externals:
   - name: lib.scad.clamps

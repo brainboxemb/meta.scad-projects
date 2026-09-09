@@ -61,9 +61,9 @@ Current convention:
 
 | Consumer | Dependency | Policy |
 | --- | --- | --- |
-| `template.scad-project` | `tool.scad-project` | exact ref `v0.4.4` |
+| `template.scad-project` | `tool.scad-project` | exact ref `v0.6.0` |
 | `template.scad-project` | `lib.scad.clamps` | branch ref `main` |
-| `lib.scad.clamps` | `tool.scad-project` | exact ref `v0.4.4` |
+| `lib.scad.clamps` | `tool.scad-project` | exact ref `v0.6.0` |
 
 The `lib.scad.clamps` branch policy in the template is intentional for current
 integration testing. Once the library has an established stable semantic

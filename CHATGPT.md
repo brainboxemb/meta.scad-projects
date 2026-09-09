@@ -174,13 +174,13 @@ tooling:
     type: git-submodule
     url: https://github.com/brainboxemb/tool.scad-project.git
     path: tools/tool.scad-project
-    ref: v0.4.4
+    ref: v0.6.0
 ```
 
 External libraries use the same `ref` model.
 
 Supported policies:
-- exact tag such as `v0.4.4`;
+- exact tag such as `v0.6.0`;
 - `latest` = highest stable semantic-version tag;
 - explicit branch such as `main`.
 
@@ -190,9 +190,9 @@ A development ZIP name is not an official release. Dependency `latest` must
 only consider actual Git tags.
 
 Current reference policies:
-- `template.scad-project` -> `tool.scad-project`: `v0.4.4`;
+- `template.scad-project` -> `tool.scad-project`: `v0.6.0`;
 - `template.scad-project` -> `lib.scad.clamps`: `main`;
-- `lib.scad.clamps` -> `tool.scad-project`: `v0.4.4`.
+- `lib.scad.clamps` -> `tool.scad-project`: `v0.6.0`.
 
 The template follows `lib.scad.clamps/main` because the library does not yet
 have an established stable release-tag series.
