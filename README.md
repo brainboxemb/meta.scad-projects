@@ -180,7 +180,7 @@ meta.scad-projects/
 ├── bootstrap.sh
 ├── .gitmodules
 ├── README.md
-└── CHATGPT.md
+└── AGENTS.md
 ```
 
 ## Bootstrap
