@@ -1,253 +1,149 @@
-# CHATGPT.md
+# Repository agent guidance
+
+Persistent guidance for automated coding agents working in `meta.scad-projects`.
 
 ## Repository purpose
 
-`meta.scad-projects` is the central architecture, repository-map and cross-project
-integration-context repository for the SCAD ecosystem.
+`meta.scad-projects` is the central architecture, repository-map and
+cross-project integration-context repository for the current SCAD ecosystem.
 
-It exists so that ecosystem-level design decisions do not live only in chat
-history or become duplicated inconsistently across repositories.
+It exists so ecosystem-level decisions do not live only in chat history or get
+duplicated inconsistently across repositories.
 
-## Current repositories
+## Authority boundary
 
-- `docker.scad-toolchain`
-- `docker.scad-toolchain.test`
-- `tool.scad-project`
-- `template.scad-project`
-- `lib.scad.clamps`
-
-## Repository ownership model
-
-Each underlying repository remains authoritative for its own implementation,
-tests and release history.
+Each tracked repository remains authoritative for its own implementation,
+tests, release history and local documentation.
 
 This repository is authoritative for:
 
-- ecosystem architecture
-- cross-repository dependency relationships
-- compatibility/version mapping
-- integration conventions
-- overkoepelende design documentation
+- ecosystem architecture;
+- cross-repository dependency relationships;
+- integration conventions;
+- compatibility/version mapping when derived from real repository state;
+- cross-project documentation.
 
 Do not move implementation code here merely to centralize it.
 
-## Diagram convention
+## Sources of truth
 
-Prefer Mermaid embedded directly in Markdown for architecture diagrams.
+Avoid copying volatile versions into this file.
 
-Reasons:
+Use:
 
-- text based
-- Git diff friendly
-- directly rendered by GitHub
-- easy to update alongside architecture changes
+```text
+.gitmodules + gitlinks                 tracked repository set / pinned commits
+tracked repositories                   implementation and local dependency policy
+scripts/repository-status.py           generated current-state reporting
+architecture Markdown/Mermaid          hand-maintained architecture intent
+```
 
-Use yEd/GraphML only when a graph becomes complex enough that interactive
-layout adds real value. In that case GraphML is source and PNG/SVG is generated
+Generated status must observe repository state; it must not become a second
+hand-maintained dependency database.
+
+## Architecture conventions
+
+Use Mermaid embedded in Markdown for normal architecture diagrams. Prefer
+`flowchart TD` for the central ecosystem view.
+
+Group repositories semantically:
+
+```text
+Runtime / Build environment
+Project workflow
+Design / Consumers
+Verification
+```
+
+Label relationships by purpose (`runtime`, `build tooling`, `design / reusable
+CAD`, `runs on`, `verifies`). Use dashed arrows for verification/observation
+rather than normal dependencies.
+
+Use GraphML only when a graph becomes complex enough that interactive layout is
+materially useful; GraphML is then source and rendered images are generated
 output.
 
 ## Source/build separation
 
-Normal branch:
+The normal source branch contains architecture/configuration/submodule pointers.
+Generated diagrams, reports and cross-project status belong under generated
+output and the configured generated branch, not mixed into source.
+
+## Tracked repositories and submodules
+
+Repositories under `repos/` are real Git submodules in the actual repository.
+Normal meta workflows initialize first-level submodules only.
+
+Do not recursively initialize nested consumer dependencies merely to report
+meta state. Recursive checkout is reserved for a dedicated integration test
+whose explicit purpose is validating complete dependency trees.
+
+Across the ecosystem, normal checkout/update operations should initialize only
+direct dependencies owned by the current repository.
+
+## Bootstrap and updates
+
+Keep bootstrap and advancement separate:
 
 ```text
-Markdown
-Mermaid
-configuration
-submodule pointers
+bootstrap.ps1 / bootstrap.sh
+    establish/restore the committed submodule locks
+
+update-repos.ps1 / update-repos.sh
+    fetch direct tracked repositories
+    advance only by explicit fast-forward policy
+    leave changed gitlinks for human review
 ```
 
-Generated branch:
+Update scripts must not reset/force branches or auto-commit meta changes.
+
+## Consumer dependency model
+
+For current SCAD consumers:
 
 ```text
-generated diagrams
-integration reports
-generated cross-project documentation
+project.yml       dependency policy
+parent gitlink    exact resolved lock
 ```
 
-Use `build` as the mutable generated branch unless a later ecosystem-wide
-decision changes the convention.
+Supported policy forms include exact stable tag, `latest` stable semantic tag,
+and explicit branch. Never interpret `latest` as the default branch.
 
-## Submodules
+Do not copy current per-repository version pins into this file. Generate or read
+them from the owning repositories instead.
 
-The repositories under `repos/` are intended to be real Git submodules in the
-actual Git repository.
-
-The ZIP representation cannot encode gitlinks, so `.gitmodules` plus bootstrap
-scripts are included. Bootstrap must stay Python-free and require only Git plus
-PowerShell/bash.
-
-## Current architecture
-
-Runtime:
-- `docker.scad-toolchain`
-
-Runtime consumer validation:
-- `docker.scad-toolchain.test`
-
-Reusable project workflow:
-- `tool.scad-project`
-
-Reference consumer:
-- `template.scad-project`
-
-Reusable CAD library:
-- `lib.scad.clamps`
-
-Integration/architecture:
-- `meta.scad-projects`
-
-## Near-term roadmap
-
-1. Keep architecture and repository map synchronized with the real consumers.
-2. Observe version/ref policies and pinned gitlinks through generated status.
-3. Add integration compatibility checks only when they can be based on actual
-   executable evidence rather than guessed version matching.
-
-
-## Updating tracked repositories
-
-Keep `bootstrap` and repository advancement as separate operations.
-
-`bootstrap.ps1` / `bootstrap.sh`:
-- restores/initializes the Git submodules pinned by the meta repository.
-
-`update-repos.ps1` / `update-repos.sh`:
-- requires clean submodule working trees;
-- fetches each origin;
-- detects the remote default branch through `origin/HEAD`;
-- updates using fast-forward only;
-- leaves changed gitlinks for human review;
-- never commits automatically.
-
-Do not make update scripts silently change branches through reset/force
-operations and do not auto-commit the resulting meta-repository changes.
-
-
-## Architecture diagram convention
-
-Use top-down Mermaid (`flowchart TD`) for the central ecosystem diagram.
-
-Group repositories into these semantic layers:
-- Runtime / Build environment
-- Project workflow
-- Design / Consumers
-- Verification
-
-Always label relationships by purpose (`build tooling`, `runtime`,
-`design / reusable CAD`, `runs on`, `verifies`). A plain unlabeled dependency
-arrow is too ambiguous for the central architecture view.
-
-A dashed arrow represents verification/observation rather than a normal runtime
-or build dependency.
-
-
-
-## Repository status automation
-
-Keep repository roles/relationships as hand-maintained architecture source.
-
-Current state is generated by `scripts/repository-status.py`:
-- pinned gitlink commit
-- latest remote default-branch commit
-- latest stable semantic-version tag
-- latest completed GitHub Actions result
-- update/up-to-date state
-
-The scheduled workflow runs daily, on `main` pushes and manually. Generated
-output belongs only in `bld/` / the mutable orphan `build` branch.
-
-The status generator must not automatically update or commit submodules.
-Updating pinned versions remains an explicit `update-repos` operation followed
-by human review and a normal meta-repository commit.
-
-## Consumer dependency architecture
-
-Consumer repositories use `project.yml` as dependency policy and Git submodule
-gitlinks as the exact resolved lock.
-
-Preferred tooling example:
-
-```yaml
-tooling:
-  tool_scad_project:
-    type: git-submodule
-    url: https://github.com/brainboxemb/tool.scad-project.git
-    path: tools/tool.scad-project
-    ref: v0.6.1
-```
-
-External libraries use the same `ref` model.
-
-Supported policies:
-- exact tag such as `v0.6.1`;
-- `latest` = highest stable semantic-version tag;
-- explicit branch such as `main`.
-
-Never make `latest` fall back to `main`.
-
-A development ZIP name is not an official release. Dependency `latest` must
-only consider actual Git tags.
-
-Current reference policies:
-- `template.scad-project` -> `tool.scad-project`: `v0.6.1`;
-- `template.scad-project` -> `lib.scad.clamps`: `main`;
-- `lib.scad.clamps` -> `tool.scad-project`: `v0.6.1`.
-
-The template follows `lib.scad.clamps/main` because the library does not yet
-have an established stable release-tag series.
-
-## Consumer repository management
-
-Canonical consumer semantics:
+Canonical consumer operations remain conceptually distinct:
 
 ```text
-bootstrap
-    Python-free, establish/repair submodules and restore committed gitlinks
-
-repo-sync
-    restore committed dependency locks
-
-update-repo
-    Python-free, intentionally resolve project.yml refs and advance gitlinks
+bootstrap      establish/repair submodules and committed locks
+repo-sync      restore committed dependency locks
+update-repo    intentionally resolve policy and advance locks
 ```
 
-`update-repo` leaves changes uncommitted and aligns thin reusable GitHub
-workflow callers with the resolved `tool.scad-project` ref.
+Generic consumer workflow logic belongs in `tool.scad-project`; consumers keep
+thin callers.
 
-Do not duplicate project-specific external-update scripts when the generic
-`update-repo` mechanism can handle the dependency.
+## Status automation
 
-Common GitHub Actions build/verification logic belongs in reusable workflows in
-`tool.scad-project`; consumers should keep thin callers.
+Repository roles and relationships are hand-maintained architecture source.
+Changing operational state is generated.
 
-Generated branch convention:
-- `build` for normal generated docs/renders/build output;
-- separate `verification` only where distinct functional/API evidence warrants
-  it, currently `lib.scad.clamps`.
+Status automation may report items such as:
 
-## Meta submodule checkout rule
+- pinned gitlink commit;
+- latest remote default-branch commit;
+- latest stable semantic tag;
+- latest completed Actions result;
+- update/up-to-date state.
 
-Normal `meta.scad-projects` workflows must initialize only first-level
-submodules (`submodules: true` in `actions/checkout`), not recursively.
+It must never update or commit submodules automatically. Advancing pins remains
+an explicit reviewed operation.
 
-Reason: meta observes tracked repositories and does not need each consumer's
-nested tooling/library tree merely to report repository state. Recursive
-checkout creates unnecessary coupling to nested gitlinks and can fail on an
-unpublished nested commit.
+## Relationship with tech.scad
 
-Use recursive checkout only in a dedicated integration workflow whose explicit
-purpose is validating complete consumer dependency trees.
+`meta.scad-projects` covers the controlled current infrastructure/integration
+set. `tech.scad` is the broader catalog/knowledge layer including classic
+infrastructure and user CAD projects.
 
-## Ecosystem direct-only dependency rule
-
-Across the ecosystem, normal checkout/update operations initialize only direct
-submodules belonging to the current repository.
-
-Nested dependency submodules are not traversed automatically. A dependency is
-responsible for its own direct submodules only when it is the standalone
-project.
-
-Use recursive checkout only for a dedicated full dependency-tree integration
-test.
-
+Do not expand this repository into the broad catalog role already owned by
+`tech.scad`.
