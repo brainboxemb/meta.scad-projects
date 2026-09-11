@@ -25,7 +25,7 @@ jobs:
           set -euo pipefail
 
           test -s README.md
-          test -s CHATGPT.md
+          test -s AGENTS.md
           test -s docs/architecture.md
           test -s docs/repository-map.md
           test -s docs/build-model.md
