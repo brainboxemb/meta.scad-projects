@@ -71,6 +71,24 @@ flowchart TD
 
 See [docs/architecture.md](docs/architecture.md) for the full ecosystem view.
 
+## Active cross-project improvement plan
+
+The current tooling/build improvement track is documented in two layers:
+
+- [Current SCAD project workflow model](docs/project-workflow-model.md) — an
+  as-is overview of normal render/export entrypoints, `design.md` render
+  declarations, verification entrypoints and project-specific verification
+  commands;
+- [Tooling build-decision and verification plan](docs/tooling-test-plan.md) — a
+  numbered plan for structured build telemetry, deterministic SCons tests,
+  post-build auditing, a proposed independent `tool.scad-project.test`
+  repository, GitHub Actions cache tests, consumer rollout and later authoring
+  model consolidation.
+
+The plan is intentionally split into numbered steps so a new work session can
+start from this meta repository and continue one bounded step in the repository
+that owns its implementation.
+
 ## Project dependency model
 
 Consumer projects now describe their dependency policy in `project.yml`.
@@ -173,6 +191,8 @@ meta.scad-projects/
 │   ├── architecture.md
 │   ├── repository-map.md
 │   ├── build-model.md
+│   ├── project-workflow-model.md
+│   ├── tooling-test-plan.md
 │   └── versioning.md
 ├── design/
 │   └── design.md
