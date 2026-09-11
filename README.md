@@ -73,7 +73,8 @@ See [docs/architecture.md](docs/architecture.md) for the full ecosystem view.
 
 ## Active cross-project improvement plan
 
-The current tooling/build improvement track is documented in two layers:
+The current tooling/build improvement track is documented in three useful
+entry points:
 
 - [Current SCAD project workflow model](docs/project-workflow-model.md) — an
   as-is overview of normal render/export entrypoints, `design.md` render
@@ -83,7 +84,10 @@ The current tooling/build improvement track is documented in two layers:
   numbered plan for structured build telemetry, deterministic SCons tests,
   post-build auditing, a proposed independent `tool.scad-project.test`
   repository, GitHub Actions cache tests, consumer rollout and later authoring
-  model consolidation.
+  model consolidation;
+- [New chat / work-session handoff](docs/new-chat-handoff.md) — a copy/paste
+  instruction for starting a new ChatGPT conversation on one numbered plan
+  step without reconstructing the architecture from chat history.
 
 The plan is intentionally split into numbered steps so a new work session can
 start from this meta repository and continue one bounded step in the repository
@@ -193,6 +197,7 @@ meta.scad-projects/
 │   ├── build-model.md
 │   ├── project-workflow-model.md
 │   ├── tooling-test-plan.md
+│   ├── new-chat-handoff.md
 │   └── versioning.md
 ├── design/
 │   └── design.md
