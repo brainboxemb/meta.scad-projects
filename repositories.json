@@ -1,6 +1,12 @@
 {
   "repositories": [
     {
+      "name": "tool.git-project",
+      "path": "repos/tool.git-project",
+      "url": "https://github.com/brainboxemb/tool.git-project",
+      "role": "Generic Git bootstrap and dependency tooling"
+    },
+    {
       "name": "docker.scad-toolchain",
       "path": "repos/docker.scad-toolchain",
       "url": "https://github.com/brainboxemb/docker.scad-toolchain",
@@ -16,7 +22,7 @@
       "name": "tool.scad-project",
       "path": "repos/tool.scad-project",
       "url": "https://github.com/brainboxemb/tool.scad-project",
-      "role": "Reusable project and build tooling"
+      "role": "Reusable SCAD project and build tooling"
     },
     {
       "name": "template.scad-project",
