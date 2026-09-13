@@ -1,36 +1,43 @@
 # meta.scad-projects
 
 Central architecture, repository map, integration context and cross-project
-documentation for the SCAD project ecosystem.
+documentation for the current SCAD project ecosystem.
 
-This repository is the overkoepelende source of truth for the relationships
-between the repositories that make up the SCAD tooling and library workflow.
+This repository is the coordination source of truth for the relationships and
+rollout rules that make up the **current** SCAD tooling and library workflow.
+The wider SCAD/CAD landscape, including classic project generations, is
+cataloged separately by [`tech.scad`](https://github.com/brainboxemb/tech.scad).
 
 ## Scope
 
-The repository documents and integrates:
+The controlled integration set documents and observes:
 
-- `docker.scad-toolchain`
-- `docker.scad-toolchain.test`
-- `tool.scad-project`
-- `template.scad-project`
-- `lib.scad.clamps`
+- `tool.git-project` — generic Git bootstrap/dependency tooling;
+- `docker.scad-toolchain`;
+- `docker.scad-toolchain.test`;
+- `tool.scad-project` — SCAD-specific project/build tooling;
+- `template.scad-project`;
+- `lib.scad.clamps`.
 
 The individual repositories remain independently versioned and own their own
 implementation details. This repository documents how they fit together.
+
+Do not infer from this list that every CAD repository uses the same stack. Use
+`tech.scad/catalog.yml` for the broad project-infrastructure classification.
 
 ## Tracked repositories
 
 | Repository | Role |
 | --- | --- |
+| [`tool.git-project`](https://github.com/brainboxemb/tool.git-project) | Generic Git bootstrap and dependency/submodule management |
 | [`docker.scad-toolchain`](https://github.com/brainboxemb/docker.scad-toolchain) | Runtime / build environment |
 | [`docker.scad-toolchain.test`](https://github.com/brainboxemb/docker.scad-toolchain.test) | Verification of the runtime/toolchain |
-| [`tool.scad-project`](https://github.com/brainboxemb/tool.scad-project) | Reusable project and build tooling |
-| [`template.scad-project`](https://github.com/brainboxemb/template.scad-project) | Reference consumer project |
-| [`lib.scad.clamps`](https://github.com/brainboxemb/lib.scad.clamps) | Reusable CAD library |
+| [`tool.scad-project`](https://github.com/brainboxemb/tool.scad-project) | Reusable SCAD project and build tooling |
+| [`template.scad-project`](https://github.com/brainboxemb/template.scad-project) | Reference current-generation consumer project |
+| [`lib.scad.clamps`](https://github.com/brainboxemb/lib.scad.clamps) | Reusable CAD library / current-generation consumer |
 
-The current generated overview of pinned commits, latest default-branch commits,
-tags and GitHub Actions state is published on the generated `build` branch:
+The generated overview of pinned commits, latest default-branch commits, tags
+and GitHub Actions state is published on the generated `build` branch:
 
 [Repository status](https://github.com/brainboxemb/meta.scad-projects/blob/build/repository-status.md)
 
@@ -39,12 +46,17 @@ tags and GitHub Actions state is published on the generated `build` branch:
 ```mermaid
 flowchart TD
 
+    subgraph GIT["Generic repository tooling"]
+        direction TB
+        GITTOOL["tool.git-project"]
+    end
+
     subgraph RUNTIME["Runtime / Build environment"]
         direction TB
         TOOLCHAIN["docker.scad-toolchain"]
     end
 
-    subgraph WORKFLOW["Project workflow"]
+    subgraph WORKFLOW["SCAD project workflow"]
         direction TB
         TOOL["tool.scad-project"]
     end
@@ -60,109 +72,122 @@ flowchart TD
         TOOLCHAIN_TEST["docker.scad-toolchain.test"]
     end
 
-    TEMPLATE -->|"build tooling"| TOOL
+    TEMPLATE -->|"bootstrap / dependencies"| GITTOOL
+    CLAMPS -->|"bootstrap / dependencies"| GITTOOL
+
+    TEMPLATE -->|"SCAD build tooling"| TOOL
+    CLAMPS -->|"SCAD build tooling"| TOOL
     TEMPLATE -->|"runtime"| TOOLCHAIN
     TEMPLATE -->|"design / reusable CAD"| CLAMPS
 
     TOOL -->|"runs on"| TOOLCHAIN
-
     TOOLCHAIN_TEST -.->|"verifies"| TOOLCHAIN
 ```
+
+The `tool.git-project` arrows represent the target ownership boundary introduced
+by the current migration prerequisite. An individual repository is only
+considered migrated after its own configuration and gitlinks prove adoption.
 
 See [docs/architecture.md](docs/architecture.md) for the full ecosystem view.
 
 ## Active cross-project improvement plan
 
-The current tooling/build improvement track is documented in three useful
-entry points:
+The current tooling/build improvement track is documented in four useful entry
+points:
 
-- [Current SCAD project workflow model](docs/project-workflow-model.md) — an
-  as-is overview of normal render/export entrypoints, `design.md` render
-  declarations, verification entrypoints and project-specific verification
-  commands;
-- [Tooling build-decision and verification plan](docs/tooling-test-plan.md) — a
-  numbered plan for structured build telemetry, deterministic SCons tests,
-  post-build auditing, a proposed independent `tool.scad-project.test`
-  repository, GitHub Actions cache tests, consumer rollout and later authoring
-  model consolidation;
-- [New chat / work-session handoff](docs/new-chat-handoff.md) — a copy/paste
-  instruction for starting a new ChatGPT conversation on one numbered plan
-  step without reconstructing the architecture from chat history.
+- [SCAD ecosystem architecture](docs/architecture.md) — current repository
+  boundaries, including the generic `tool.git-project` bootstrap layer;
+- [Current SCAD project workflow model](docs/project-workflow-model.md) — the
+  as-is build/render/design/verification model;
+- [Tooling build-decision and verification plan](docs/tooling-test-plan.md) —
+  the numbered roadmap. Step **0.5 — Adopt generic Git bootstrap layer** is a
+  prerequisite before Structured build-decision telemetry resumes;
+- [New chat / work-session handoff](docs/new-chat-handoff.md) — the copy/paste
+  instruction for a new ChatGPT work session, including the requirement to
+  re-check architecture/ownership before implementing a step.
 
-The plan is intentionally split into numbered steps so a new work session can
-start from this meta repository and continue one bounded step in the repository
-that owns its implementation.
+The plan is intentionally split into bounded steps so a new work session can
+start from this meta repository and continue in the repository that owns the
+implementation.
 
-## Project dependency model
+## Current ownership split
 
-Consumer projects now describe their dependency policy in `project.yml`.
-
-Example:
-
-```yaml
-tooling:
-  tool_scad_project:
-    type: git-submodule
-    url: https://github.com/brainboxemb/tool.scad-project.git
-    path: tools/tool.scad-project
-    ref: v0.6.1
-
-externals:
-  - name: lib.scad.clamps
-    type: git-submodule
-    url: https://github.com/brainboxemb/lib.scad.clamps.git
-    path: dsg/openscad/ext/lib.scad.clamps
-    ref: main
-```
-
-The configured `ref` is dependency policy, while the parent repository's Git
-submodule gitlink is the concrete lock.
-
-Supported policy forms are:
+The generic bootstrap concern is now separate from SCAD-specific build tooling:
 
 ```text
-ref: vX.Y.Z
-    exact released tag
+tool.git-project
+    generic bootstrap
+    generic dependency/submodule registration
+    generic status/update behavior
 
-ref: latest
-    highest stable semantic-version tag
-
-ref: main
-ref: develop
-    current head of an explicitly named branch
+tool.scad-project
+    SCAD configuration/build/design/verification
+    SCons orchestration
+    reusable SCAD GitHub Actions workflows
 ```
 
-`latest` never silently falls back to `main`.
+Current-generation consumers are being migrated to that split. New generic
+Git/submodule behavior should not be added back into `tool.scad-project`.
 
-The current reference projects deliberately demonstrate different behavior:
+## Target project dependency model
 
-- `tool.scad-project` is pinned by an exact released ref;
-- `template.scad-project` currently follows `lib.scad.clamps` through
-  `ref: main`, because that library does not yet have an established release
-  tag series;
-- a future consumer can use `ref: latest` once the dependency has stable
-  semantic-version releases.
+The target current-generation project model is:
 
-Repository setup/update commands are intentionally separated:
+```text
+tools/tool.git-project
+    bootstrap engine pinned directly by the parent Git repository
+
+project.yml
+    generic project/dependency/profile declarations
+
+project.scad.yml (or migration-compatible SCAD profile)
+    SCAD-specific project/build configuration
+
+managed dependency gitlinks
+    exact resolved commits
+
+tools/tool.scad-project
+    SCAD tooling dependency managed by the generic layer
+```
+
+The bootstrap engine itself is special: it must exist before `project.yml` can
+be processed, so a tiny root launcher restores its committed gitlink and then
+delegates to `tool.git-project`.
+
+Generic dependency operations remain intentionally separate:
 
 ```text
 bootstrap
-    establish/repair submodule registrations and restore committed gitlinks
+    establish/repair configured dependency registrations and committed locks
 
-repo-sync
-    restore the exact commits already locked by a consumer repository
+status
+    inspect dependency state without advancing it
 
-update-repo
-    intentionally resolve configured refs and advance consumer gitlinks
+update
+    intentionally resolve configured refs and advance locks
 ```
 
-The root `bootstrap.*` and `update-repo.*` scripts supplied by
-`tool.scad-project` are Python-free and require only Git plus PowerShell/bash.
-The updater leaves changes uncommitted for review.
+SCAD build/design/verification commands remain in `tool.scad-project`.
 
-GitHub Actions reusable workflow refs remain literal YAML values, so
-`update-repo` also aligns thin workflow callers with the resolved
-`tool.scad-project` ref.
+## Migration scope
+
+Not all CAD projects use the current infrastructure.
+
+For broad current-stack migrations, consult
+[`tech.scad/catalog.yml`](https://github.com/brainboxemb/tech.scad/blob/main/catalog.yml)
+and consider repositories classified as:
+
+```yaml
+project_infrastructure:
+  generation: current
+```
+
+Classic standalone projects and projects using `brainboxemb.github.actions` are
+outside the generic migration unless a separate project-specific decision
+explicitly includes them.
+
+`meta.scad-projects` coordinates a smaller controlled integration/rollout set;
+it does not replace the complete catalog.
 
 ## Source and generated content
 
@@ -190,7 +215,7 @@ are intentionally maintained source assets.
 
 ```text
 meta.scad-projects/
-├── repos/                  # Git submodules
+├── repos/                  # Git submodules in the controlled integration set
 ├── docs/
 │   ├── architecture.md
 │   ├── repository-map.md
@@ -208,11 +233,12 @@ meta.scad-projects/
 └── AGENTS.md
 ```
 
-## Bootstrap
+## Meta bootstrap
 
-The ZIP cannot contain real Git submodule gitlinks. After creating the actual
-Git repository, run the bootstrap script to register and initialize the
-repositories listed in `.gitmodules`.
+This repository's own root bootstrap scripts restore the first-level integration
+submodules pinned by `meta.scad-projects`. That is a repository-local mechanism
+for the meta integration checkout; it should not be confused with the target
+consumer architecture owned by `tool.git-project`.
 
 Windows:
 
@@ -226,76 +252,41 @@ Linux/macOS:
 bash ./bootstrap.sh
 ```
 
-The bootstrap scripts require only Git plus PowerShell or bash.
-
-
 ## Direct-submodule rule
 
-The ecosystem now uses a consistent direct-only checkout rule.
+The ecosystem uses a consistent direct-only checkout rule.
 
 ```text
 normal project/repository operation
     initialize only direct submodules owned by that repository
 
 dependency consumed inside another repository
-    do not automatically initialize that dependency's own submodules
+    do not automatically initialize that dependency's own development submodules
 
 full recursive checkout
     only in an explicit integration test
 ```
 
-For `meta.scad-projects`, this means normal bootstrap, validation and status
-workflows materialize only `repos/*`. Nested tooling/libraries inside those
-repositories are intentionally left untouched.
+For `meta.scad-projects`, normal bootstrap, validation and status workflows
+materialize only `repos/*`. Nested tooling/libraries inside those repositories
+are intentionally left untouched.
 
 ## Meta checkout depth
 
-The normal meta workflows intentionally initialize only the first-level
-repositories under `repos/`.
-
-```yaml
-with:
-  submodules: true
-```
-
-They do **not** use recursive submodule checkout.
+The normal meta workflows initialize only the first-level repositories under
+`repos/`; they do not recursively materialize every consumer dependency tree.
 
 This is intentional because `meta.scad-projects` observes and compares the
-tracked repositories; it does not need to materialize every consumer's nested
-dependency tree. For example:
-
-```text
-meta.scad-projects
-└── repos/template.scad-project
-    ├── tools/tool.scad-project
-    └── dsg/openscad/ext/lib.scad.clamps
-        └── tools/tool.scad-project
-```
-
-Recursively checking out that full tree makes an observational status workflow
-depend on every nested gitlink being remotely available.
-
-A future dedicated integration job may use recursive checkout when the purpose
-is specifically to validate complete consumer dependency trees.
+tracked repositories. A dedicated integration test may use deeper checkout when
+its explicit purpose is to validate a complete consumer dependency tree.
 
 ## Automated ecosystem status
 
 `.github/workflows/repository-status.yml` generates a current cross-repository
-status report:
+status report under `bld/` and publishes it to the mutable generated `build`
+branch.
 
-```text
-bld/
-├── repository-status.md
-└── repository-status.mmd
-```
-
-It runs:
-
-- after a push to `main`;
-- once per day at `05:17 UTC`;
-- on manual `workflow_dispatch`.
-
-The report includes:
+The report includes, where available:
 
 - commit pinned by this meta repository;
 - remote default branch;
@@ -303,40 +294,15 @@ The report includes:
 - latest stable semantic-version tag;
 - whether the pinned commit is current;
 - latest completed GitHub Actions result;
-- latest commit date;
-- a version-labelled Mermaid architecture diagram.
+- latest commit date.
 
-The generated output is published to the mutable orphan `build` branch. Nothing
-generated by this workflow is committed to `main`.
+Nothing generated by this workflow is committed to `main`.
 
-## Update all repositories
+## Updating the controlled integration set
 
 After bootstrap, the meta repository keeps exact Git submodule commits pinned.
-To intentionally move all tracked repositories to the latest commit on their
-remote default branch, run:
-
-Windows:
-
-```powershell
-.\update-repos.ps1
-```
-
-Linux/macOS:
-
-```bash
-bash ./update-repos.sh
-```
-
-The update script:
-
-- initializes missing submodules first;
-- refuses to update a repository that has local changes;
-- fetches and prunes `origin`;
-- follows each repository's `origin/HEAD` default branch instead of assuming
-  that every repository uses `main`;
-- updates with `pull --ff-only`;
-- prints old and new commit SHAs;
-- leaves the changed submodule pointers uncommitted in `meta.scad-projects`.
+`update-repos.ps1` / `update-repos.sh` intentionally advance those tracked
+repositories and leave changed gitlinks uncommitted for review.
 
 This keeps the actions separate:
 
@@ -351,17 +317,12 @@ git commit
     accept the new ecosystem snapshot
 ```
 
-A typical update therefore ends with:
-
-```powershell
-git status
-git add repos
-git commit -m "Update SCAD ecosystem repositories"
-```
-
 ## Current status
 
-The repository now documents the shared dependency-policy model, reusable workflow architecture, generated-output model and cross-repository status automation. Cross-repository compatibility checks can be added later without turning this meta repository into a runtime dependency.
+The repository now records the separated generic Git bootstrap layer, the
+current SCAD-specific project/build layer, the controlled integration set and
+the prerequisite migration that must complete before build-decision telemetry
+continues.
 
 The model, code and documentation are being developed with the assistance of
 ChatGPT.
