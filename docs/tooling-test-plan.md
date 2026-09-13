@@ -10,12 +10,18 @@ This plan defines how the SCAD ecosystem will make selective build behavior:
 4. continuously observable in real project builds.
 
 The plan is coordinated from `meta.scad-projects`, while implementation remains
-in the repository that owns the behavior. In particular, SCons/build logic
-belongs in `tool.scad-project`; the meta repository records the cross-project
+in the repository that owns the behavior. Generic Git bootstrap/dependency
+management belongs in `tool.git-project`; SCons/build/design/verification logic
+belongs in `tool.scad-project`. The meta repository records the cross-project
 contract and rollout order.
 
 The current authoring/build mechanisms are described separately in
 [project-workflow-model.md](project-workflow-model.md).
+
+For broad SCAD/CAD migration scope, use the infrastructure-generation
+classification in `tech.scad/catalog.yml`. `meta.scad-projects` coordinates a
+controlled current integration set and must not assume that every CAD repository
+uses the current project stack.
 
 ## Problem statement
 
@@ -55,7 +61,13 @@ relationships and rollout sequence.
 Implementation and repository-local tests stay with their owner:
 
 ```text
+tool.git-project
+    generic repository bootstrap
+    generic dependency/submodule management
+    generic dependency validation/status/update
+
 tool.scad-project
+    SCAD project/build policy
     build engine
     SCons drivers
     structured reports
@@ -68,9 +80,11 @@ tool.scad-project.test          proposed in Step 4
 template.scad-project
     reference consumer / canary
 
-real CAD consumers
+real current-generation SCAD consumers
     production evidence
 ```
+
+Classic CAD projects are not implicitly part of current-stack migrations.
 
 ### 2. Real SCons behavior must be tested with real SCons
 
@@ -101,21 +115,25 @@ data has been collected.
 ```mermaid
 flowchart TD
     META["meta.scad-projects\nplan + cross-project contract"]
-    TOOL["tool.scad-project\nimplementation + white-box conformance"]
+    GITTOOL["tool.git-project\ngeneric bootstrap + dependencies"]
+    TOOL["tool.scad-project\nSCAD implementation + white-box conformance"]
     TOOLTEST["tool.scad-project.test\nindependent black-box qualification"]
     TOOLCHAIN["docker.scad-toolchain\npinned runtime"]
     TEMPLATE["template.scad-project\nreference consumer"]
-    REAL["real CAD consumers\nproduction canaries"]
+    REAL["current-generation SCAD consumers\nproduction canaries"]
 
+    META -.->|"coordinates"| GITTOOL
     META -.->|"coordinates"| TOOL
     META -.->|"coordinates"| TOOLTEST
+
+    TEMPLATE -->|"bootstrap / dependencies"| GITTOOL
+    REAL -->|"bootstrap / dependencies"| GITTOOL
+    TEMPLATE -->|"SCAD project tooling"| TOOL
+    REAL -->|"SCAD project tooling"| TOOL
 
     TOOL -->|"runs on"| TOOLCHAIN
     TOOLTEST -->|"tests exact tool SHA"| TOOL
     TOOLTEST -->|"runs on"| TOOLCHAIN
-
-    TEMPLATE -->|"uses"| TOOL
-    REAL -->|"uses"| TOOL
 
     TEMPLATE -.->|"real-run audit evidence"| TOOL
     REAL -.->|"real-run audit evidence"| TOOL
@@ -130,17 +148,20 @@ it.
 | Step | Name | Primary owner | Depends on | Initial state |
 | --- | --- | --- | --- | --- |
 | 0 | Baseline and vocabulary | `meta.scad-projects` | — | documented |
-| 1 | Structured build-decision telemetry | `tool.scad-project` | 0 | planned |
+| 0.5 | Adopt generic Git bootstrap layer | `tool.git-project` + `tool.scad-project` + current consumers | 0 | planned prerequisite |
+| 1 | Structured build-decision telemetry | `tool.scad-project` | 0.5 | paused until 0.5 |
 | 2 | Deterministic SCons decision suite | `tool.scad-project` | 1 | planned |
 | 3 | Post-build decision audit | `tool.scad-project` | 1, 2 | planned |
 | 4 | Independent tooling test repository | `tool.scad-project.test` | 2, 3 | planned |
 | 5 | Deterministic GitHub Actions cache tests | `tool.scad-project.test` + `tool.scad-project` | 4 | planned |
-| 6 | Consumer rollout and continuous observation | template + selected consumers | 3, 5 | planned |
+| 6 | Consumer rollout and continuous observation | template + selected current consumers | 3, 5 | planned |
 | 7 | Authoring-model consolidation | meta + `tool.scad-project` | 2, 3, 6 | planned |
 | 8 | Cleanup, policy tightening and release | ecosystem | 6, 7 | planned |
 
 The steps are intentionally small enough that a new work session can take one
-step without needing to redesign the whole system.
+step without needing to redesign the whole system. Step 0.5 is an explicit plan
+correction introduced when `tool.git-project` became the owner of generic Git
+project bootstrap/dependency behavior.
 
 ---
 
@@ -171,7 +192,113 @@ The current system can be discussed without using ambiguous phrases such as
 
 ---
 
+## Step 0.5 — Adopt generic Git bootstrap layer
+
+### Goal
+
+Establish the new repository ownership boundary before adding more behavior to
+`tool.scad-project`.
+
+Generic Git bootstrap, dependency registration, submodule alignment, dependency
+status and generic update behavior belong to `tool.git-project`. SCAD-specific
+build, design, verification, workflow and runtime behavior remains in
+`tool.scad-project`.
+
+### Owning repositories
+
+- `tool.git-project` owns the generic bootstrap/dependency contract;
+- `tool.scad-project` owns the SCAD-side migration away from its older generic
+  bootstrap implementation;
+- each migrated current-generation consumer owns its own configuration/gitlink
+  adoption.
+
+`meta.scad-projects` coordinates the order and evidence but does not absorb the
+implementation.
+
+### Migration scope
+
+Use `tech.scad/catalog.yml` to determine the broad candidate set. Only
+repositories classified with:
+
+```yaml
+project_infrastructure:
+  generation: current
+```
+
+are candidates for this generic current-stack migration.
+
+Do not include classic standalone or classic shared-actions CAD projects unless
+a separate project-specific migration explicitly chooses to do so.
+
+The catalog identifies the generation; each owning repository remains
+authoritative for whether it has actually adopted `tool.git-project` yet.
+
+### Required architecture changes
+
+The current project model should converge on this responsibility split:
+
+```text
+consumer repository
+    ├── tools/tool.git-project
+    │       generic bootstrap engine, pinned directly by Git
+    │
+    ├── project.yml
+    │       generic project/dependency/profile declarations
+    │
+    ├── project.scad.yml (or equivalent SCAD profile contract)
+    │       SCAD-specific project/build configuration
+    │
+    └── tools/tool.scad-project
+            SCAD-specific tooling dependency managed through the generic layer
+```
+
+The exact migration details may preserve compatibility while repositories move,
+but new generic Git/submodule logic must not be duplicated back into
+`tool.scad-project`.
+
+### Required migration work
+
+At minimum:
+
+1. update `tool.scad-project` so its documented and executable bootstrap/update
+   boundary uses `tool.git-project` for generic repository dependency work;
+2. retain SCAD-specific responsibilities in `tool.scad-project`, including
+   build/design/verification behavior and any SCAD-specific workflow alignment
+   that does not belong in the generic Git tool;
+3. migrate `template.scad-project` first as the reference consumer;
+4. migrate current-generation libraries/consumers selected from the
+   `tech.scad` catalog;
+5. verify that clean bootstrap, committed-lock restore, explicit update and
+   dirty-dependency protection still behave deterministically;
+6. verify that SCAD Build/Verify behavior is unchanged except for the intended
+   bootstrap/dependency ownership change.
+
+### Initial rollout order
+
+Use the current catalog rather than a hard-coded claim that all CAD projects
+participate. At the time this prerequisite was introduced, the cataloged
+current-generation SCAD consumers included the template, current SCAD
+libraries, and the current HUB75 display-frame restart. Re-check the catalog at
+execution time because this set can grow.
+
+### Completion criterion
+
+A clean current-generation SCAD consumer can establish its generic repository
+dependencies through `tool.git-project`, use `tool.scad-project` only for
+SCAD-specific project/build behavior, and pass its normal Build/Verify evidence.
+The classic project generation remains unaffected.
+
+Only after this criterion is met should Step 1 resume.
+
+---
+
 ## Step 1 — Structured build-decision telemetry
+
+### Status
+
+Paused until Step 0.5 is complete. Issue/branch work may exist in
+`tool.scad-project`, but it must not be treated as the active implementation
+step until the bootstrap ownership migration is finished.
 
 ### Goal
 
@@ -541,7 +668,10 @@ Start with:
 1. `template.scad-project`;
 2. one representative library/verification consumer;
 3. one representative larger CAD consumer such as the HUB75 display frame;
-4. wider consumers after the reports are stable.
+4. wider current-generation consumers after the reports are stable.
+
+Use `tech.scad/catalog.yml` to determine which repositories belong to the
+current generation; this step does not imply rollout to classic CAD projects.
 
 ### Per-build evidence
 
@@ -660,32 +790,27 @@ are all represented in released tooling and reference consumers.
 
 ## How to use this plan in a new chat/work session
 
-A new session should start from the meta repository as the coordination source,
-then implement only the selected step in the repository that owns it.
+A new session should start from the meta repository as the coordination source
+and verify that the selected step still matches the current architecture before
+implementation. The canonical copy/paste handoff is maintained in
+[new-chat-handoff.md](new-chat-handoff.md).
 
-A useful handoff prompt is:
-
-```text
-Work from meta.scad-projects as the cross-project coordination source.
-Read:
-- docs/project-workflow-model.md
-- docs/tooling-test-plan.md
-
-Continue with Step <N> only.
-Use the owning repository named in that step for implementation.
-Do not redesign later steps unless the current step requires a documented plan
-correction.
-After implementation, update the plan status/evidence in meta.scad-projects.
-```
-
-For example:
+At minimum read:
 
 ```text
-Continue Step 2 — Deterministic SCons decision suite.
+docs/architecture.md
+docs/repository-map.md
+docs/project-workflow-model.md
+docs/tooling-test-plan.md
 ```
 
-This gives each chat a bounded scope while preserving the architecture and
-reasoning in repository history rather than chat history.
+For a broad CAD/SCAD migration, use `tech.scad/catalog.yml` to determine the
+infrastructure-generation scope rather than assuming every CAD repository uses
+the current stack.
+
+If a new repository or changed ownership boundary introduces a prerequisite,
+document and execute that prerequisite before continuing the previously selected
+step. Do not infer architecture only from prior chat history.
 
 ## Per-step completion discipline
 
