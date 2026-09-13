@@ -1,3 +1,7 @@
+[submodule "repos/tool.git-project"]
+	path = repos/tool.git-project
+	url = https://github.com/brainboxemb/tool.git-project.git
+
 [submodule "repos/docker.scad-toolchain"]
 	path = repos/docker.scad-toolchain
 	url = https://github.com/brainboxemb/docker.scad-toolchain.git
