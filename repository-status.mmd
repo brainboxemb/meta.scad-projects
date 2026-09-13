@@ -1,0 +1,24 @@
+flowchart TD
+
+    subgraph RUNTIME["Runtime / Build environment"]
+        TOOLCHAIN["docker.scad-toolchain<br/>v0.4.1<br/>↑ update"]
+    end
+
+    subgraph WORKFLOW["Project workflow"]
+        TOOL["tool.scad-project<br/>v0.9.13<br/>↑ update"]
+    end
+
+    subgraph DESIGN["Design / Consumers"]
+        TEMPLATE["template.scad-project<br/>v0.0.2<br/>↑ update"]
+        CLAMPS["lib.scad.clamps<br/>v0.1.1<br/>↑ update"]
+    end
+
+    subgraph VERIFY["Verification"]
+        TEST["docker.scad-toolchain.test<br/>no tag<br/>↑ update"]
+    end
+
+    TEMPLATE -->|"build tooling"| TOOL
+    TEMPLATE -->|"runtime"| TOOLCHAIN
+    TEMPLATE -->|"design / reusable CAD"| CLAMPS
+    TOOL -->|"runs on"| TOOLCHAIN
+    TEST -.->|"verifies"| TOOLCHAIN
