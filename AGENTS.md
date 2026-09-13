@@ -32,8 +32,9 @@ Avoid copying volatile versions into this file.
 Use:
 
 ```text
-.gitmodules + gitlinks                 tracked repository set / pinned commits
+.gitmodules + gitlinks                 tracked integration set / pinned commits
 tracked repositories                   implementation and local dependency policy
+tech.scad/catalog.yml                  broad SCAD landscape / infrastructure generation
 scripts/repository-status.py           generated current-state reporting
 architecture Markdown/Mermaid          hand-maintained architecture intent
 ```
@@ -49,15 +50,16 @@ Use Mermaid embedded in Markdown for normal architecture diagrams. Prefer
 Group repositories semantically:
 
 ```text
+Generic repository tooling
 Runtime / Build environment
-Project workflow
+SCAD project workflow
 Design / Consumers
 Verification
 ```
 
-Label relationships by purpose (`runtime`, `build tooling`, `design / reusable
-CAD`, `runs on`, `verifies`). Use dashed arrows for verification/observation
-rather than normal dependencies.
+Label relationships by purpose (`bootstrap / dependencies`, `runtime`, `build
+tooling`, `design / reusable CAD`, `runs on`, `verifies`). Use dashed arrows for
+verification/observation rather than normal dependencies.
 
 Use GraphML only when a graph becomes complex enough that interactive layout is
 materially useful; GraphML is then source and rendered images are generated
@@ -81,13 +83,31 @@ whose explicit purpose is validating complete dependency trees.
 Across the ecosystem, normal checkout/update operations should initialize only
 direct dependencies owned by the current repository.
 
-## Bootstrap and updates
+## Bootstrap ownership
 
-Keep bootstrap and advancement separate:
+Keep generic repository bootstrap/dependency behavior separate from SCAD build
+behavior.
+
+```text
+tool.git-project
+    generic Git bootstrap
+    generic dependency/submodule registration and alignment
+    generic dependency validation/status/update
+
+tool.scad-project
+    SCAD project/build/design/verification policy
+    reusable SCAD GitHub Actions workflows
+```
+
+Do not add new generic Git/submodule management logic to `tool.scad-project`.
+Current-generation SCAD consumers should migrate to the generic bootstrap layer
+before further tooling work assumes the new boundary.
+
+For this meta repository itself, keep bootstrap and advancement separate:
 
 ```text
 bootstrap.ps1 / bootstrap.sh
-    establish/restore the committed submodule locks
+    establish/restore the committed meta submodule locks
 
 update-repos.ps1 / update-repos.sh
     fetch direct tracked repositories
@@ -99,29 +119,51 @@ Update scripts must not reset/force branches or auto-commit meta changes.
 
 ## Consumer dependency model
 
-For current SCAD consumers:
+For the target current SCAD consumer architecture:
 
 ```text
-project.yml       dependency policy
-parent gitlink    exact resolved lock
+tools/tool.git-project       bootstrap engine pinned directly by Git
+project.yml                  generic project/dependency/profile policy
+project.scad.yml             SCAD-specific project configuration (where adopted)
+parent gitlinks              exact resolved locks
+tools/tool.scad-project      SCAD tooling dependency managed through generic layer
 ```
 
-Supported policy forms include exact stable tag, `latest` stable semantic tag,
-and explicit branch. Never interpret `latest` as the default branch.
+The exact migration can preserve compatibility while repositories move, but the
+ownership direction is fixed: generic repository management belongs to
+`tool.git-project`, not `tool.scad-project`.
 
 Do not copy current per-repository version pins into this file. Generate or read
 them from the owning repositories instead.
 
-Canonical consumer operations remain conceptually distinct:
+Generic consumer operations remain conceptually distinct:
 
 ```text
-bootstrap      establish/repair submodules and committed locks
-repo-sync      restore committed dependency locks
-update-repo    intentionally resolve policy and advance locks
+bootstrap      establish/repair configured submodules and committed locks
+status         inspect dependency state without advancing it
+update         intentionally resolve policy and advance locks
 ```
 
-Generic consumer workflow logic belongs in `tool.scad-project`; consumers keep
-thin callers.
+SCAD build/design/verification operations remain the responsibility of
+`tool.scad-project`.
+
+## Migration scope
+
+Do not assume that every CAD repository uses the current stack.
+
+For broad SCAD/CAD migrations, consult `tech.scad/catalog.yml` and start from
+repositories classified with:
+
+```yaml
+project_infrastructure:
+  generation: current
+```
+
+Classic standalone/shared-actions projects stay outside the migration unless a
+separate project-specific decision explicitly includes them.
+
+`meta.scad-projects` may coordinate a smaller rollout/integration subset, but it
+must not duplicate the complete catalog manually.
 
 ## Status automation
 
@@ -144,6 +186,10 @@ an explicit reviewed operation.
 `meta.scad-projects` covers the controlled current infrastructure/integration
 set. `tech.scad` is the broader catalog/knowledge layer including classic
 infrastructure and user CAD projects.
+
+Use `tech.scad` for broad membership/infrastructure-generation classification;
+use this repository for current-stack architecture, rollout order and
+integration evidence.
 
 Do not expand this repository into the broad catalog role already owned by
 `tech.scad`.
