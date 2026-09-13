@@ -11,21 +11,36 @@ The improvement plan in [tooling-test-plan.md](tooling-test-plan.md) first makes
 build decisions observable and testable, then evaluates whether the authoring
 model should be simplified.
 
-Implementation details remain authoritative in the repository that owns them,
-primarily `tool.scad-project`. This document is the cross-project description of
-how those mechanisms fit together.
+A new generic repository/bootstrap layer now exists in `tool.git-project`.
+Step 0.5 of the improvement plan migrates current-generation consumers away from
+the older `tool.scad-project`-owned bootstrap/dependency behavior before further
+build telemetry work continues. This document still describes the current
+build/design/verification mechanisms themselves; generic Git bootstrap ownership
+is documented in [architecture.md](architecture.md).
+
+Implementation details remain authoritative in the repository that owns them:
+generic Git bootstrap/dependency behavior in `tool.git-project`, and SCAD
+build/design/verification behavior primarily in `tool.scad-project`. This
+document is the cross-project description of how the SCAD mechanisms fit
+together.
 
 ## Common project foundation
 
-Normal consumer projects describe their roots and build policy in
-`project.yml`. A typical OpenSCAD consumer has:
+Current-generation consumer projects use a structured source/build/verification
+layout, typically:
 
 ```text
 dsg/                       design/source tree
 bld/                       generated normal build output
 vrf/                       verification source/evidence
-project.yml                project and tooling configuration
 ```
+
+Before the Step 0.5 migration is complete, individual consumers may still keep
+both generic dependency policy and SCAD-specific project settings together in
+`project.yml`. The target ownership split is a generic `project.yml` processed
+through `tool.git-project` plus SCAD-specific configuration owned by
+`tool.scad-project`; each repository remains authoritative for its actual
+migration state.
 
 The selective build backend currently resolves configured work into target
 specifications and lets SCons decide whether each target needs execution. The
@@ -58,8 +73,8 @@ dsg/openscad/render/*.scad
 dsg/openscad/export/*.scad
 ```
 
-`project.yml` points at these roots through `paths.render_root` and
-`paths.export_root`.
+The SCAD project configuration points at these roots through
+`paths.render_root` and `paths.export_root`.
 
 Optional `render.yml` and `export.yml` files add profile information such as:
 
@@ -216,9 +231,9 @@ because it was rendered.
 
 ## Workflow 4 — project-specific verification commands
 
-`project.yml` can also declare `verification.commands`. These commands run after
-verification target generation and are appropriate for checks that are not just
-"render this entrypoint".
+The SCAD project configuration can also declare `verification.commands`. These
+commands run after verification target generation and are appropriate for checks
+that are not just "render this entrypoint".
 
 Examples include:
 
@@ -296,7 +311,7 @@ post-build decision audit.
 
 ## GitHub Actions cache layer
 
-The reusable workflows add a second layer around SCons:
+The reusable SCAD workflows add a second layer around SCons:
 
 ```text
 GitHub Actions cache restore
